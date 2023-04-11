@@ -46,7 +46,15 @@ class AddNewRomModal extends React.Component
             this.rom = new Uint8Array(e.target.result);
             console.log("ROM is " + this.rom.byteLength + "bytes long");
             var banks = 1 << (this.rom[0x0148] + 1);
-            var name = enc.decode(this.rom.subarray(0x134, 0x134 + 16));
+            var nameArray = this.rom.subarray(0x134, 0x134 + 16);
+            var zero = nameArray.findIndex((element, index, array) => {return element === 0;})
+            if(zero === -1)
+            {
+                zero = 16;
+            }
+
+            var name = enc.decode(this.rom.subarray(0x134, 0x134 + zero));
+            
             console.log("ROM has " + banks + " banks");
             console.log("ROM name is " + name);
             this.setState({validRomLoaded: true, romInfo: { banks: banks, name: name } });
@@ -100,7 +108,7 @@ class AddNewRomModal extends React.Component
                         <Form.Group as={Row}>
                             <Form.Label column sm="2">ROM Name:</Form.Label>
                             <Col sm="10">
-                            <Form.Control plaintext readOnly value={this.state.romInfo.name} />
+                            <Form.Control plaintext value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks}})} />
                             </Col>
                         </Form.Group>
                         <Form.Group as={Row}>
