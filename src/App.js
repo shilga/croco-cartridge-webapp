@@ -3,9 +3,10 @@ import Button from 'react-bootstrap/Button';
 import Communication from './communication'
 import AddNewRomModal from "./Components/AddNewRomModal";
 import DeleteConfirmation from './Components/DeleteConfirmation';
+import SavegameModal from './Components/SavegameModal';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ProgressBar from 'react-bootstrap/ProgressBar';
-import { Trash3Fill } from "react-bootstrap-icons";
+import { Trash3Fill, Save2Fill } from "react-bootstrap-icons";
 
 class GbCartridge extends React.Component {
   StateConnect = "Connect"; // Select USB device
@@ -21,6 +22,9 @@ class GbCartridge extends React.Component {
     confirmationMessage: null,
     confirmationId: 0,
     showConfirmationModal: false,
+    showSavegameModal: false,
+    activeRomListItem: null,
+    activeRomListInfo: null
   }
 
   ConnectButtonHandler() {
@@ -68,6 +72,12 @@ class GbCartridge extends React.Component {
     this.setState({showConfirmationModal: true});
   };
 
+  openSaveGameModal = (e) => {
+    const id = e.currentTarget.dataset.index;
+
+    this.setState({showSavegameModal: true, activeRomListInfo: this.state.romInfos[id]});
+  };
+
   deleteRom = async (type, id) => {
     console.log("Deleting ROM " + id + " " + this.state.romInfos[id]);
 
@@ -96,7 +106,7 @@ class GbCartridge extends React.Component {
             <hr />
             <Button onClick={(e) => this.ConnectButtonHandler()} className="btn btn-lg btn-secondary">Connect</Button>
             <br />
-            <small>Version: 0.2</small>
+            <small>Version: 0.3</small>
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {
@@ -118,6 +128,7 @@ class GbCartridge extends React.Component {
                   <div className="ms-2 me-auto">
                     {romInfo.name}
                   </div>
+                  <Button data-index={idx} onClick={this.openSaveGameModal}><Save2Fill/></Button>
                   <Button data-index={idx} onClick={this.showDeleteConfirmationModal}><Trash3Fill/></Button>
                 </ListGroup.Item>
               ))}
@@ -127,6 +138,7 @@ class GbCartridge extends React.Component {
             <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
             <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} comm={this.comm} />
             <DeleteConfirmation showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} type={null} id={this.state.confirmationId} message={this.state.confirmationMessage}  />
+            <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} comm={this.comm} romInfo={this.state.activeRomListInfo} />
           </div>
         );
       }

@@ -1,3 +1,4 @@
+import StringView from "stringview"
 
 class Communication {
     constructor() {
@@ -207,12 +208,12 @@ class Communication {
             var view = new DataView(payload);
             var arrayView = new Uint8Array(payload);
             view.setUint8(0, rom);
-            this.executeCommand(4, arrayView, 17).then(result => {
-                const enc = new TextDecoder("utf-8");
+            this.executeCommand(4, arrayView, 18).then(result => {
                 var view = new DataView(result);
-                var arrayView = new Uint8Array(result);
                 var romInfo = {
-                    name: enc.decode(arrayView)
+                    romId: rom,
+                    name: StringView.getStringNT(view, 0),
+                    numRamBanks: view.getUint8(17)
                 };
                 resolve(romInfo);
             },
@@ -242,6 +243,47 @@ class Communication {
                 });
         });
     }
+
+    requestSaveGameCommand(romId) {
+        return new Promise((resolve, reject) => {
+            var payload = new ArrayBuffer(1);
+            var view = new DataView(payload);
+            var arrayView = new Uint8Array(payload);
+            view.setUint8(0, romId);
+            this.executeCommand(6, arrayView, 2).then(result => {
+                var data = new Uint8Array(result);
+                if (data[0] !== 0) {
+                    console.log("requestSaveGameCommand rejected with code " + data[0]);
+                    reject("Request Savegame failed");
+                }
+
+                resolve();
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
+    receiveSavegameChunkCommand() {
+        return new Promise((resolve, reject) => {
+            this.executeCommand(7, null, 36).then(result => {
+                var view = new DataView(result);
+                var data = new Uint8Array(result);
+                var res = {
+                    bank: view.getUint16(0),
+                    chunk: view.getUint16(2),
+                    data: data.subarray(4, 36)
+                };
+
+                resolve(res);
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
 }
 
 export default Communication;
