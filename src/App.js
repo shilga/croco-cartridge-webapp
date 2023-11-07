@@ -2,7 +2,7 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Communication from './communication'
 import AddNewRomModal from "./Components/AddNewRomModal";
-import DeleteConfirmation from './Components/DeleteConfirmation';
+import ConfirmationModal from './Components/ConfirmationModal';
 import SavegameModal from './Components/SavegameModal';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ProgressBar from 'react-bootstrap/ProgressBar';
@@ -67,7 +67,7 @@ class GbCartridge extends React.Component {
   showDeleteConfirmationModal = (e) => {
     const id = e.currentTarget.dataset.index;
 
-    this.setState({confirmationId: id, confirmationMessage: `Are you sure you want to delete '${this.state.romInfos[id].name}'?`});
+    this.setState({confirmationId: id, confirmationMessage: `Are you sure you want to delete '${this.state.romInfos[id].name}' and it's savegame?`});
 
     this.setState({showConfirmationModal: true});
   };
@@ -128,16 +128,16 @@ class GbCartridge extends React.Component {
                   <div className="ms-2 me-auto">
                     {romInfo.name}
                   </div>
-                  <Button data-index={idx} onClick={this.openSaveGameModal}><Save2Fill/></Button>
-                  <Button data-index={idx} onClick={this.showDeleteConfirmationModal}><Trash3Fill/></Button>
+                  <Button data-index={idx} onClick={this.openSaveGameModal} disabled={romInfo.numRamBanks === 0}><Save2Fill/></Button>
+                  <Button variant='danger' data-index={idx} onClick={this.showDeleteConfirmationModal}><Trash3Fill/></Button>
                 </ListGroup.Item>
               ))}
             </ListGroup>
             <hr/>
             <ProgressBar now={this.state.deviceInfo.usedBanks} max={this.state.deviceInfo.maxBanks} label={`${this.state.deviceInfo.usedBanks} banks used`}/> <br/>
             <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
-            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} comm={this.comm} />
-            <DeleteConfirmation showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} type={null} id={this.state.confirmationId} message={this.state.confirmationMessage}  />
+            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} comm={this.comm} />"
+            <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
             <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} comm={this.comm} romInfo={this.state.activeRomListInfo} />
           </div>
         );

@@ -85,7 +85,9 @@ class Communication {
                 this.ready = true;
                 this.device = device;
                 resolve();
-            })
+            }).catch((error) => {
+                reject(error);
+            });
         });
     }
 
@@ -244,7 +246,7 @@ class Communication {
         });
     }
 
-    requestSaveGameCommand(romId) {
+    requestSaveGameDownloadCommand(romId) {
         return new Promise((resolve, reject) => {
             var payload = new ArrayBuffer(1);
             var view = new DataView(payload);
@@ -277,6 +279,51 @@ class Communication {
                 };
 
                 resolve(res);
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
+    requestSaveGameUploadCommand(romId) {
+        return new Promise((resolve, reject) => {
+            var payload = new ArrayBuffer(1);
+            var view = new DataView(payload);
+            var arrayView = new Uint8Array(payload);
+            view.setUint8(0, romId);
+
+            this.executeCommand(8, arrayView, 1).then(result => {
+                var data = new Uint8Array(result);
+                if (data[0] !== 0) {
+                    console.log("requestSaveGameUploadCommand rejected with code " + data[0]);
+                    reject("Savegame not accepted");
+                }
+
+                resolve();
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
+    sendSavegameChunkCommand(bank, chunk, data) {
+        return new Promise((resolve, reject) => {
+            var payload = new ArrayBuffer(36);
+            var view = new DataView(payload);
+            var arrayView = new Uint8Array(payload);
+            view.setUint16(0, bank, false);
+            view.setUint16(2, chunk, false);
+            arrayView.set(data, 4);
+            this.executeCommand(9, arrayView, 1).then(result => {
+                var data = new Uint8Array(result);
+                if (data[0] !== 0) {
+                    console.log("sendSavegameChunkCommand rejected with code " + data[0]);
+                    reject("RAM chunk not accepted");
+                }
+
+                resolve();
             },
                 error => {
                     reject(error);
