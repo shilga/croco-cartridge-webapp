@@ -85,10 +85,14 @@ class GbCartridge extends React.Component {
 
     this.hideConfirmationModal();
 
+    this.readDeviceStatus();
+  };
+
+  refreshDeviceStatus = async() => {
     this.setState({state: this.StateRetrievingInfo});
 
     this.readDeviceStatus();
-  };
+  }
 
   hideConfirmationModal = () => {
     this.setState({showConfirmationModal: false});
@@ -106,7 +110,7 @@ class GbCartridge extends React.Component {
             <hr />
             <Button onClick={(e) => this.ConnectButtonHandler()} className="btn btn-lg btn-secondary">Connect</Button>
             <br />
-            <small>Version: 0.3</small>
+            <small>Version: 0.4</small>
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {
@@ -136,7 +140,7 @@ class GbCartridge extends React.Component {
             <hr/>
             <ProgressBar now={this.state.deviceInfo.usedBanks} max={this.state.deviceInfo.maxBanks} label={`${this.state.deviceInfo.usedBanks} banks used`}/> <br/>
             <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
-            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} comm={this.comm} />"
+            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} comm={this.comm} />"
             <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
             <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} comm={this.comm} romInfo={this.state.activeRomListInfo} />
           </div>

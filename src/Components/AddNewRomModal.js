@@ -14,6 +14,7 @@ class AddNewRomModal extends React.Component
 {
     show = this.props.show;
     onHide = this.props.onHide;
+    onRomAdded = this.props.onRomAdded;
     comm = this.props.comm;
 
     state = {
@@ -82,7 +83,7 @@ class AddNewRomModal extends React.Component
         console.log("Upload finished");
         this.setState({uploadInProgress: false});
 
-        this.onHide();
+        this.onRomAdded();
     }
 
     render() {
@@ -107,7 +108,7 @@ class AddNewRomModal extends React.Component
                         <Form.Group as={Row}>
                             <Form.Label column sm="2">ROM Name:</Form.Label>
                             <Col sm="10">
-                            <Form.Control plaintext value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks}})} />
+                            <Form.Control plaintext maxLength={16} value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks}})} />
                             </Col>
                         </Form.Group>
                         <Form.Group as={Row}>
