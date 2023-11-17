@@ -110,7 +110,7 @@ class GbCartridge extends React.Component {
             <hr />
             <Button onClick={(e) => this.ConnectButtonHandler()} className="btn btn-lg btn-secondary">Connect</Button>
             <br />
-            <small>Version: 0.4</small>
+            <small>Version: {process.env.REACT_APP_VERSION}</small>
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {

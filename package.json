@@ -1,13 +1,16 @@
 {
   "name": "gb-cartridge-webapp",
-  "version": "0.1.0",
+  "version": "0.4.1",
   "private": true,
+  "main": "electron-main.js",
+  "homepage": "./",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.2.3",
     "downloadjs": "^1.4.7",
+    "electron-is-dev": "^2.0.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.2",
     "react-bootstrap-icons": "^1.10.3",
@@ -17,10 +20,15 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test --env=jsdom",
+    "react-eject": "react-scripts eject",
+    "electron-build": "electron-builder",
+    "electron": "electron .",
+    "release": "npm run react-build && electron-builder -wl",
+    "build": "npm run react-build && npm run electron-build",
+    "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"npm run electron-run\""
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +47,24 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^27.1.0",
+    "electron-builder": "^24.6.4",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "extends": null,
+    "appId": "de.x-pantion.croco-cartridge",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "electron-main.js"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }
