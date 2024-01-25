@@ -1,6 +1,6 @@
 {
   "name": "gb-cartridge-webapp",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "main": "electron-main.js",
   "homepage": "./",
@@ -16,6 +16,7 @@
     "react-bootstrap-icons": "^1.10.3",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
+    "react-toastify": "^10.0.4",
     "stringview": "^3.0.0",
     "web-vitals": "^2.1.4"
   },

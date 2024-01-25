@@ -7,6 +7,36 @@ import SavegameModal from './Components/SavegameModal';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { Trash3Fill, Save2Fill } from "react-bootstrap-icons";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+function isElectron() {
+  // Renderer process
+  if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
+      return true;
+  }
+
+  // Main process
+  if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
+      return true;
+  }
+
+  // Detect the user agent when the `nodeIntegration` option is set to true
+  if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
+      return true;
+  }
+
+  return false;
+}
+
+const NewFirmwareNotifcation = () => {
+  return (
+    <div>
+        New Firmware available.<br/>
+        <a target="_blank" rel="noopener noreferrer" href="https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases">Check it out</a>
+    </div>
+  )
+}
 
 class GbCartridge extends React.Component {
   StateConnect = "Connect"; // Select USB device
@@ -17,7 +47,8 @@ class GbCartridge extends React.Component {
   state = {
     state: this.StateConnect,
     openAddRomModal: false,
-    deviceInfo: { numRoms: 0, usedBanks: 0, maxBanks: 0},
+    deviceInfo: {},
+    romUtiliuation: { numRoms: 0, usedBanks: 0, maxBanks: 0},
     romInfos: [],
     confirmationMessage: null,
     confirmationId: 0,
@@ -48,20 +79,43 @@ class GbCartridge extends React.Component {
 
   async readDeviceStatus() {
     console.log("Reading device info...");
+
     var deviceInfo = await this.comm.readDeviceInfoCommand();
-    console.log("num Roms: " + deviceInfo.numRoms);
-    console.log("used banks: " + deviceInfo.usedBanks);
+    this.setState({deviceInfo: deviceInfo});
+
+    if(deviceInfo.swVersion.minor < 2)
+    {
+      setTimeout(() => {
+        toast.info(NewFirmwareNotifcation, {
+          position: "top-right",
+          autoClose: 0,
+          hideProgressBar: true,
+          closeOnClick: true,
+          draggable: false,
+          progress: undefined,
+          theme: "light",
+        });
+      }, 1000);
+    }
+
+    this.readRomUtilization();
+  }
+
+  async readRomUtilization() {
+    console.log("Reading ROM utilization...");
+    var romUtiliuation = await this.comm.readRomUtilizationCommand();
+    console.log("num Roms: " + romUtiliuation.numRoms);
+    console.log("used banks: " + romUtiliuation.usedBanks);
 
     var romInfos = [];
 
-    for (var rom = 0; rom < deviceInfo.numRoms; rom++) {
+    for (var rom = 0; rom < romUtiliuation.numRoms; rom++) {
       var romInfo = await this.comm.readRomInfoCommand(rom);
       console.log("Rom " + rom + ": " + romInfo.name);
       romInfos.push(romInfo);
     }
 
-    this.setState({ state: this.StateConnected, deviceInfo: deviceInfo, romInfos: romInfos });
-
+    this.setState({ state: this.StateConnected, romUtiliuation: romUtiliuation, romInfos: romInfos });
   }
 
   showDeleteConfirmationModal = (e) => {
@@ -85,6 +139,10 @@ class GbCartridge extends React.Component {
 
     this.hideConfirmationModal();
 
+    toast.success("ROM deleted", {
+      position: "top-right",
+    });
+
     this.readDeviceStatus();
   };
 
@@ -102,7 +160,6 @@ class GbCartridge extends React.Component {
     if (navigator.usb) {
       if (this.state.state === this.StateConnect) {
         return (
-
           <div className="connect">
             <img src={process.env.PUBLIC_URL + '/croco_small.png'} className="gameboy" />
             <h2 className="cover-heading">Croco Gameboy Cartridge</h2>
@@ -111,6 +168,8 @@ class GbCartridge extends React.Component {
             <Button onClick={(e) => this.ConnectButtonHandler()} className="btn btn-lg btn-secondary">Connect</Button>
             <br />
             <small>Version: {process.env.REACT_APP_VERSION}</small>
+
+            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href="https://croco.x-pantion.de/offline">here</a>.</div>}
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {
@@ -124,7 +183,7 @@ class GbCartridge extends React.Component {
       } else if (this.state.state === this.StateConnected) {
         return (
           <div className="connect">
-            <h2>Connected</h2>
+            <ToastContainer />
             <hr/>
             <ListGroup>
               {this.state.romInfos.map((romInfo, idx) => (
@@ -138,9 +197,13 @@ class GbCartridge extends React.Component {
               ))}
             </ListGroup>
             <hr/>
-            <ProgressBar now={this.state.deviceInfo.usedBanks} max={this.state.deviceInfo.maxBanks} label={`${this.state.deviceInfo.usedBanks} banks used`}/> <br/>
+            <ProgressBar now={this.state.romUtiliuation.usedBanks} max={this.state.romUtiliuation.maxBanks} label={`${this.state.romUtiliuation.usedBanks} banks used`}/> <br/>
+            Connected to Croco Cartridge with firmware version {this.state.deviceInfo.swVersion.major}.{this.state.deviceInfo.swVersion.minor}.{this.state.deviceInfo.swVersion.patch} {this.state.deviceInfo.swVersion.buildType}. 
+            Git <a target="_blank" rel="noopener noreferrer" href={"https://github.com/shilga/rp2040-gameboy-cartridge-firmware/commit/" + this.state.deviceInfo.swVersion.gitShort.toString(16)} >{this.state.deviceInfo.swVersion.gitShort.toString(16)}</a>
+            {(this.state.deviceInfo.swVersion.gitDirty) && "(dirty)"}
+            <hr/>
             <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
-            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} comm={this.comm} />"
+            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} comm={this.comm} />
             <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
             <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} comm={this.comm} romInfo={this.state.activeRomListInfo} />
           </div>

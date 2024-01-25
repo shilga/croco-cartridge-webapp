@@ -1,24 +1,5 @@
 import StringView from "stringview"
 
-function isElectron() {
-    // Renderer process
-    if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
-        return true;
-    }
-
-    // Main process
-    if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
-        return true;
-    }
-
-    // Detect the user agent when the `nodeIntegration` option is set to true
-    if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
-        return true;
-    }
-
-    return false;
-}
-
 class Communication {
     constructor() {
         this.buffer = [];
@@ -33,13 +14,9 @@ class Communication {
 
     static requestPort() {
         const filters = [
-            { 'vendorId': 0x239A }, // Adafruit boards
-            { 'vendorId': 0xcafe }, // TinyUSB example
+            { 'vendorId': 0x2E8A, 'productId': 0x107F }, // TinyUSB example
+            { 'vendorId': 0xcafe, 'productId': 0x2142 }, // TinyUSB example
         ];
-        if(isElectron())
-        {
-            console.log("I'm Electron");
-        }
 
         return navigator.usb.requestDevice({ 'filters': filters }).then(
             device => {
@@ -164,6 +141,49 @@ class Communication {
     }
 
     readDeviceInfoCommand() {
+        return new Promise((resolve, reject) => {
+            this.executeCommand(254, null, 11).then(result => {
+                var view = new DataView(result);
+                var messageVersion = view.getUint8(0);
+                if(messageVersion === 1)
+                {
+                    var res = {
+                        hwVersion: view.getUint8(1),
+                        swVersion: {
+                            major: view.getUint8(2),
+                            minor: view.getUint8(3),
+                            patch: view.getUint8(4),
+                            buildType: StringView.getString(view, 5, 1),
+                            gitShort: view.getUint32(6),
+                            gitDirty: view.getUint8(10) === 1 ? true : false
+                        },
+                    };
+                    resolve(res);
+                }
+                else
+                {
+                    reject("Unknown messageVersion");
+                }
+            },
+            error => {
+                console.log("readDeviceInfoCommand() " + error)
+                var res = {
+                    hwVersion: 1,
+                    swVersion: {
+                        major: 0,
+                        minor: 0,
+                        patch: 0,
+                        buildType: "E",
+                        gitShort: 0,
+                        gitDirty: false
+                    },
+                };
+                resolve(res);
+            });
+        });
+    }
+
+    readRomUtilizationCommand() {
         return new Promise((resolve, reject) => {
             this.executeCommand(1, null, 5).then(result => {
                 var view = new DataView(result);
