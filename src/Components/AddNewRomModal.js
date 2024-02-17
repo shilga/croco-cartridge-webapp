@@ -23,6 +23,7 @@ class AddNewRomModal extends React.Component
         uploadInProgress: false,
         uploadRequestInProgress: false,
         uploadedBank: 0,
+        speedchangeBank: 0xFFFF
     };
 
     rom;
@@ -47,26 +48,65 @@ class AddNewRomModal extends React.Component
             console.log("ROM is " + this.rom.byteLength + "bytes long");
             var banks = 1 << (this.rom[0x0148] + 1);
             var nameArray = this.rom.subarray(0x134, 0x134 + 16);
+            var isCgbGame = this.rom[0x143] === 0xC0 || (this.rom[0x143] === 0x80);
             var zero = nameArray.findIndex((element, index, array) => {return element === 0;})
             if(zero === -1)
             {
-                zero = 16;
+                zero = isCgbGame ? 15 : 16;
             }
 
             var name = enc.decode(this.rom.subarray(0x134, 0x134 + zero));
             
             console.log("ROM has " + banks + " banks");
             console.log("ROM name is " + name);
-            this.setState({validRomLoaded: true, romInfo: { banks: banks, name: name } });
+            console.log("ROM is a CGB game: " + isCgbGame);
+
+            var speedchangeBank = 0xffff;
+            if(isCgbGame)
+            {
+                var speedchangeState = 0;
+                for(var i=0; (i<this.rom.byteLength) && (speedchangeBank === 0xffff); i++)
+                {
+                    switch(this.rom[i])
+                    {
+                    case 0xe0:
+                        if(speedchangeState === 0)
+                        {
+                            speedchangeState = 1;
+                        }
+                        break;
+                    case 0x4d:
+                        if(speedchangeState === 1)
+                        {
+                            speedchangeState = 2;
+                        }
+                        break;
+                    case 0x10:
+                        if(speedchangeState === 2)
+                        {
+                            speedchangeBank = Math.floor(i / BANK_SIZE);
+                        }
+                        break;
+                    default:
+                        if(speedchangeState === 1)
+                        {
+                            speedchangeState = 0;
+                        }
+                    }
+                }
+            }
+
+            console.log("Speed change happens in bank " + speedchangeBank);
+            this.setState({validRomLoaded: true, romInfo: { banks: banks, name: name, speedchangeBank: speedchangeBank } });
         };
         reader.readAsArrayBuffer(fileObj);
     }
 
     async romUploadButtonHandler () {
-        console.log("Starting upload of " + this.state.romInfo.banks + " banks");
+        console.log("Starting upload of " + this.state.romInfo.banks + " banks with speedSwitchBank=" + this.state.romInfo.speedchangeBank);
 
         this.setState({uploadInProgress: true, uploadRequestInProgress: true, uploadedBank: this.state.romInfo.banks});
-        await this.comm.requestRomUploadCommand(this.state.romInfo.banks, this.state.romInfo.name);
+        await this.comm.requestRomUploadCommand(this.state.romInfo.banks, this.state.romInfo.name, this.state.romInfo.speedchangeBank);
 
         console.log("Upload was accepted");
 
@@ -108,7 +148,7 @@ class AddNewRomModal extends React.Component
                         <Form.Group as={Row}>
                             <Form.Label column sm="2">ROM Name:</Form.Label>
                             <Col sm="10">
-                            <Form.Control plaintext maxLength={16} value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks}})} />
+                            <Form.Control plaintext maxLength={16} value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks, speedchangeBank: this.state.romInfo.speedchangeBank}})} />
                             </Col>
                         </Form.Group>
                         <Form.Group as={Row}>

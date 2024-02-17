@@ -4,6 +4,7 @@ class Communication {
     constructor() {
         this.buffer = [];
         this.send_active = false;
+        this.supportsSpeedChangeBankInfo = false;
     }
 
     static getPorts() {
@@ -144,10 +145,8 @@ class Communication {
         return new Promise((resolve, reject) => {
             this.executeCommand(254, null, 11).then(result => {
                 var view = new DataView(result);
-                var messageVersion = view.getUint8(0);
-                if(messageVersion === 1)
-                {
                     var res = {
+                        featureStep: view.getUint8(0),
                         hwVersion: view.getUint8(1),
                         swVersion: {
                             major: view.getUint8(2),
@@ -159,11 +158,6 @@ class Communication {
                         },
                     };
                     resolve(res);
-                }
-                else
-                {
-                    reject("Unknown messageVersion");
-                }
             },
             error => {
                 console.log("readDeviceInfoCommand() " + error)
@@ -200,15 +194,27 @@ class Communication {
         });
     }
 
-    requestRomUploadCommand(banks, name) {
+    requestRomUploadCommand(banks, name, speedChangeBank) {
         return new Promise((resolve, reject) => {
             const enc = new TextEncoder("utf-8");
-            var payload = new ArrayBuffer(19);
+            var payload;
+            if(this.supportsSpeedChangeBankInfo)
+            {
+                payload = new ArrayBuffer(21);
+            }
+            else
+            {
+                payload = new ArrayBuffer(19);
+            }
             var view = new DataView(payload);
             var arrayView = new Uint8Array(payload);
             view.setUint16(0, banks, false);
             arrayView.fill(0, 2, 19);
             arrayView.set(enc.encode(name), 2);
+            if(this.supportsSpeedChangeBankInfo)
+            {
+                view.setUint16(19, speedChangeBank);
+            }
 
             this.executeCommand(2, arrayView, 1).then(result => {
                 var data = new Uint8Array(result);

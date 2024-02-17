@@ -97,6 +97,40 @@ class GbCartridge extends React.Component {
         });
       }, 1000);
     }
+    else if((deviceInfo.swVersion.minor === 2) && (deviceInfo.swVersion.patch < 2))
+    {
+      setTimeout(() => {
+        toast.info(NewFirmwareNotifcation, {
+          position: "top-right",
+          autoClose: 0,
+          hideProgressBar: true,
+          closeOnClick: true,
+          draggable: false,
+          progress: undefined,
+          theme: "light",
+        });
+      }, 1000);
+    }
+
+    if(deviceInfo.featureStep >= 2)
+    {
+      this.comm.supportsSpeedChangeBankInfo = true;
+    }
+
+    if(deviceInfo.featureStep > 2)
+    {
+      setTimeout(() => {
+        toast.warning("The cartridge firmware might be to new!", {
+          position: "top-right",
+          autoClose: 0,
+          hideProgressBar: true,
+          closeOnClick: true,
+          draggable: false,
+          progress: undefined,
+          theme: "light",
+        });
+      }, 1000);
+    }
 
     this.readRomUtilization();
   }
