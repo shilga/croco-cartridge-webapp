@@ -20,11 +20,10 @@ class AddNewRomModal extends React.Component
 
     state = {
         validRomLoaded: false,
-        romInfo: { banks: 0, name: "" },
+        romInfo: { banks: 0, name: "", speedchangeBank: 0xFFFF },
         uploadInProgress: false,
         uploadRequestInProgress: false,
-        uploadedBank: 0,
-        speedchangeBank: 0xFFFF
+        uploadedBank: 0
     };
 
     rom;
@@ -68,31 +67,54 @@ class AddNewRomModal extends React.Component
                 var speedchangeState = 0;
                 for(var i=0; (i<this.rom.byteLength) && (speedchangeBank === 0xffff); i++)
                 {
-                    switch(this.rom[i])
+                    var inst = this.rom[i];
+                    if(speedchangeState === 0)
                     {
-                    case 0xe0:
-                        if(speedchangeState === 0)
+                        if(inst === 0xe0)
                         {
                             speedchangeState = 1;
                         }
-                        break;
-                    case 0x4d:
-                        if(speedchangeState === 1)
+                    }
+                    else if(speedchangeState === 1)
+                    {
+                        if(inst === 0x4d)
                         {
                             speedchangeState = 2;
                         }
-                        break;
-                    case 0x10:
-                        if(speedchangeState === 2)
-                        {
-                            speedchangeBank = Math.floor(i / BANK_SIZE);
-                        }
-                        break;
-                    default:
-                        if(speedchangeState === 1)
+                        else
                         {
                             speedchangeState = 0;
                         }
+                    }
+                    else if(speedchangeState === 2)
+                        {
+                        if(inst === 0x10)
+                        {
+                            speedchangeState = 4;
+                            speedchangeBank = Math.floor(i / BANK_SIZE);
+                            console.log("Speed change stop at " + i.toString(16));
+                        }
+                        else if(inst === 0xc9) // ret
+                        {
+                            speedchangeState = 0;
+                        }
+                        else if (inst === 0xFF) // rst or uninitialized
+                        {
+                            speedchangeState = 0;
+                        }
+                        else if( inst === 0xe0)
+                        {
+                            speedchangeState = 3;
+                        }
+                    }
+                    else if(speedchangeState === 3)
+                    {
+                        // just ignore this byte and go back to wait for stop state
+                        speedchangeState = 2;
+                    }
+                    else
+                    {
+                        console.log("That should not have happened");
                     }
                 }
             }
