@@ -186,6 +186,18 @@ class GbCartridge extends React.Component {
     this.readDeviceStatus();
   }
 
+  displayError = (error) => {
+    toast.error(error, {
+      position: "top-right",
+      autoClose: 0,
+      hideProgressBar: true,
+      closeOnClick: true,
+      draggable: false,
+      progress: undefined,
+      theme: "light",
+    });
+  }
+
   hideConfirmationModal = () => {
     this.setState({showConfirmationModal: false});
   }
@@ -237,7 +249,7 @@ class GbCartridge extends React.Component {
             {(this.state.deviceInfo.swVersion.gitDirty) && "(dirty)"}
             <hr/>
             <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
-            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} comm={this.comm} />
+            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} onError={this.displayError} comm={this.comm} />
             <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
             <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} comm={this.comm} romInfo={this.state.activeRomListInfo} />
           </div>

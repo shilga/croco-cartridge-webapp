@@ -15,6 +15,7 @@ class AddNewRomModal extends React.Component
     show = this.props.show;
     onHide = this.props.onHide;
     onRomAdded = this.props.onRomAdded;
+    onError = this.props.onError;
     comm = this.props.comm;
 
     state = {
@@ -106,7 +107,9 @@ class AddNewRomModal extends React.Component
         console.log("Starting upload of " + this.state.romInfo.banks + " banks with speedSwitchBank=" + this.state.romInfo.speedchangeBank);
 
         this.setState({uploadInProgress: true, uploadRequestInProgress: true, uploadedBank: this.state.romInfo.banks});
+        try {
         await this.comm.requestRomUploadCommand(this.state.romInfo.banks, this.state.romInfo.name, this.state.romInfo.speedchangeBank);
+
 
         console.log("Upload was accepted");
 
@@ -124,6 +127,11 @@ class AddNewRomModal extends React.Component
         this.setState({uploadInProgress: false});
 
         this.onRomAdded();
+        } catch (e)
+        {
+            this.onError("Uploading the ROM failed");
+            this.setState({uploadInProgress: false});
+        }
     }
 
     render() {
