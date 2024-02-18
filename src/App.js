@@ -243,7 +243,7 @@ class GbCartridge extends React.Component {
               ))}
             </ListGroup>
             <hr/>
-            <ProgressBar now={this.state.romUtiliuation.usedBanks} max={this.state.romUtiliuation.maxBanks} label={`${this.state.romUtiliuation.usedBanks} banks used`}/> <br/>
+            <ProgressBar now={this.state.romUtiliuation.usedBanks} max={this.state.romUtiliuation.maxBanks} label={`${this.state.romUtiliuation.usedBanks} banks used (${this.state.romUtiliuation.maxBanks - this.state.romUtiliuation.usedBanks} free)`}/> <br/>
             Connected to Croco Cartridge with firmware version {this.state.deviceInfo.swVersion.major}.{this.state.deviceInfo.swVersion.minor}.{this.state.deviceInfo.swVersion.patch} {this.state.deviceInfo.swVersion.buildType}. 
             Git <a target="_blank" rel="noopener noreferrer" href={"https://github.com/shilga/rp2040-gameboy-cartridge-firmware/commit/" + this.state.deviceInfo.swVersion.gitShort.toString(16)} >{this.state.deviceInfo.swVersion.gitShort.toString(16)}</a>
             {(this.state.deviceInfo.swVersion.gitDirty) && "(dirty)"}
