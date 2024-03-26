@@ -145,35 +145,35 @@ class Communication {
         return new Promise((resolve, reject) => {
             this.executeCommand(254, null, 11).then(result => {
                 var view = new DataView(result);
-                    var res = {
-                        featureStep: view.getUint8(0),
-                        hwVersion: view.getUint8(1),
-                        swVersion: {
-                            major: view.getUint8(2),
-                            minor: view.getUint8(3),
-                            patch: view.getUint8(4),
-                            buildType: StringView.getString(view, 5, 1),
-                            gitShort: view.getUint32(6),
-                            gitDirty: view.getUint8(10) === 1 ? true : false
-                        },
-                    };
-                    resolve(res);
-            },
-            error => {
-                console.log("readDeviceInfoCommand() " + error)
                 var res = {
-                    hwVersion: 1,
+                    featureStep: view.getUint8(0),
+                    hwVersion: view.getUint8(1),
                     swVersion: {
-                        major: 0,
-                        minor: 0,
-                        patch: 0,
-                        buildType: "E",
-                        gitShort: 0,
-                        gitDirty: false
+                        major: view.getUint8(2),
+                        minor: view.getUint8(3),
+                        patch: view.getUint8(4),
+                        buildType: StringView.getString(view, 5, 1),
+                        gitShort: view.getUint32(6),
+                        gitDirty: view.getUint8(10) === 1 ? true : false
                     },
                 };
                 resolve(res);
-            });
+            },
+                error => {
+                    console.log("readDeviceInfoCommand() " + error)
+                    var res = {
+                        hwVersion: 1,
+                        swVersion: {
+                            major: 0,
+                            minor: 0,
+                            patch: 0,
+                            buildType: "E",
+                            gitShort: 0,
+                            gitDirty: false
+                        },
+                    };
+                    resolve(res);
+                });
         });
     }
 
@@ -198,12 +198,10 @@ class Communication {
         return new Promise((resolve, reject) => {
             const enc = new TextEncoder("utf-8");
             var payload;
-            if(this.supportsSpeedChangeBankInfo)
-            {
+            if (this.supportsSpeedChangeBankInfo) {
                 payload = new ArrayBuffer(21);
             }
-            else
-            {
+            else {
                 payload = new ArrayBuffer(19);
             }
             var view = new DataView(payload);
@@ -211,8 +209,7 @@ class Communication {
             view.setUint16(0, banks, false);
             arrayView.fill(0, 2, 19);
             arrayView.set(enc.encode(name), 2);
-            if(this.supportsSpeedChangeBankInfo)
-            {
+            if (this.supportsSpeedChangeBankInfo) {
                 view.setUint16(19, speedChangeBank);
             }
 
@@ -374,6 +371,28 @@ class Communication {
                 }
 
                 resolve();
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
+    fetchRtcDataCommand(romId) {
+        return new Promise((resolve, reject) => {
+            var payload = new ArrayBuffer(1);
+            var view = new DataView(payload);
+            var arrayView = new Uint8Array(payload);
+            view.setUint8(0, romId);
+
+            this.executeCommand(10, arrayView, 49).then(result => {
+                var data = new Uint8Array(result);
+                if (data[0] !== romId) {
+                    console.log("fetchRtcDataCommand rejected with code " + data[0]);
+                    reject("RTC data could not be fetched");
+                }
+
+                resolve(data.subarray(1, 49));
             },
                 error => {
                     reject(error);
