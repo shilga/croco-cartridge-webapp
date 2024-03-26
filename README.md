@@ -2,22 +2,20 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## License
+While the code of this webapp is under the GPLv3 license the Croco logo is not. It was created by a [Chibitheo](https://www.dreamstime.com/chibitheo_info) and a commercial license was obtained for this project. It shall only be used within this project.
+
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+### `npm react start`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
 ### `npm run build`
 
@@ -28,6 +26,10 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run electron-build`
+
+Builds the app for production and makes an Electron app out of it.
 
 ### `npm run eject`
 
