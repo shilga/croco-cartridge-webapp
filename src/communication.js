@@ -417,6 +417,29 @@ class Communication {
         });
     }
 
+    sendRtcDataCommand(romId, data) {
+        return new Promise((resolve, reject) => {
+            var payload = new ArrayBuffer(1);
+            var view = new DataView(payload);
+            var arrayView = new Uint8Array(payload);
+            view.setUint8(0, romId);
+            arrayView.set(data, 1);
+
+            this.executeCommand(10, arrayView, 1).then(result => {
+                var data = new Uint8Array(result);
+                if (data[0] !== romId) {
+                    console.log("sendRtcDataCommand rejected with code " + data[0]);
+                    reject("RTC data could not be send");
+                }
+
+                resolve(data.subarray(1, 49));
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
 }
 
 export default Communication;

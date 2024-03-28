@@ -28,6 +28,7 @@ import download from "downloadjs";
 const BANK_SIZE = 0x2000;
 const CHUNK_SIZE = 32;
 const CHUNKS_PER_BANK = BANK_SIZE / CHUNK_SIZE;
+const RTC_SAVE_SIZE = 48;
 
 class SavegameModal extends React.Component {
     show = this.props.show;
@@ -48,6 +49,8 @@ class SavegameModal extends React.Component {
     };
 
     saveGameArray;
+    saveGameSize = 0;
+    saveGameHasRtc = false;
 
     onEnterHandler() {
         // this.setState({validRomLoaded: false});
@@ -64,25 +67,46 @@ class SavegameModal extends React.Component {
 
         this.setState({ showConfirmationModal: false });
 
-        console.log("Starting upload of " + this.props.romInfo.numRamBanks + "banks (" + this.saveGameArray.byteLength + " Bytes)");
+        console.log("Starting upload of " + this.props.romInfo.numRamBanks + "banks (" + this.saveGameSize + " Bytes)");
 
-        await this.comm.requestSaveGameUploadCommand(this.props.romInfo.romId);
+        try {
+            await this.comm.requestSaveGameUploadCommand(this.props.romInfo.romId);
 
-        console.log("Upload was accepted");
+            console.log("Upload was accepted");
 
-        this.setState({ bytesToTransfer: this.saveGameArray.byteLength, bytesTransferred: 0, uploadInProgress: true });
+            this.setState({ bytesToTransfer: this.saveGameSize, bytesTransferred: 0, uploadInProgress: true });
 
-        for (var bank = 0; bank < this.props.romInfo.numRamBanks; bank++) {
-            for (var chunk = 0; chunk < CHUNKS_PER_BANK; chunk++) {
-                await this.comm.sendSavegameChunkCommand(bank, chunk, this.saveGameArray.subarray((bank * BANK_SIZE) + (chunk * CHUNK_SIZE), (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE)));
-                console.log(" Send bank " + bank + " chunk " + chunk);
+            for (var bank = 0; bank < this.props.romInfo.numRamBanks; bank++) {
+                for (var chunk = 0; chunk < CHUNKS_PER_BANK; chunk++) {
+                    await this.comm.sendSavegameChunkCommand(bank, chunk, this.saveGameArray.subarray((bank * BANK_SIZE) + (chunk * CHUNK_SIZE), (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE)));
+                    console.log(" Send bank " + bank + " chunk " + chunk);
 
-                bytesTransferred = (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE);
-                this.setState({ bytesTransferred: bytesTransferred });
+                    bytesTransferred = (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE);
+                    this.setState({ bytesTransferred: bytesTransferred });
+                }
             }
+
+            console.log("Savegame Upload was finished");
+        }
+        catch (e) {
+            this.onError("Uploading the savegame failed");
+            this.setState({ uploadInProgress: false });
+
+            console.log("Uploading the savegame failed: " + e);
+
+            return;
         }
 
-        console.log("Savegame Upload was finished");
+        if (this.saveGameHasRtc) {
+            try {
+                console.log("Sending RTC data");
+                this.comm.sendRtcDataCommand(this.props.romInfo.romId, this.saveGameArray.subarray(this.saveGameSize, this.saveGameArray.byteLength));
+            }
+            catch (e) {
+                this.onError("Uploading the RTC data failed");
+                console.log("Uploading the RTC data failed: " + e);
+            }
+        }
 
         this.setState({ uploadInProgress: false });
     };
@@ -163,8 +187,19 @@ class SavegameModal extends React.Component {
             this.saveGameArray = new Uint8Array(e.target.result);
             console.log("Loaded savegame is " + this.saveGameArray.byteLength + "bytes long");
 
+            this.hasRtcData = false;
+            this.saveGameSize = 0;
+
             if (this.saveGameArray.byteLength === this.props.romInfo.numRamBanks * BANK_SIZE) {
                 this.setState({ validSavegameLoaded: true });
+                this.saveGameSize = this.saveGameArray.byteLength;
+            }
+            else if (this.saveGameArray.byteLength === ((this.props.romInfo.numRamBanks * BANK_SIZE) + RTC_SAVE_SIZE)) {
+                this.setState({ validSavegameLoaded: true });
+                this.saveGameSize = this.saveGameArray.byteLength - RTC_SAVE_SIZE
+                this.hasRtcData = true;
+
+                console.log("Detected RTC data");
             }
             else {
                 this.setState({ validSavegameLoaded: false });
