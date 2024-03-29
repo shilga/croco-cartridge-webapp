@@ -409,7 +409,7 @@ class Communication {
                     reject("RTC data could not be fetched");
                 }
 
-                resolve(data.subarray(1, 49));
+                resolve(data.slice(1));
             },
                 error => {
                     reject(error);
@@ -419,13 +419,13 @@ class Communication {
 
     sendRtcDataCommand(romId, data) {
         return new Promise((resolve, reject) => {
-            var payload = new ArrayBuffer(1);
+            var payload = new ArrayBuffer(49);
             var view = new DataView(payload);
             var arrayView = new Uint8Array(payload);
             view.setUint8(0, romId);
             arrayView.set(data, 1);
 
-            this.executeCommand(10, arrayView, 1).then(result => {
+            this.executeCommand(11, arrayView, 1).then(result => {
                 var data = new Uint8Array(result);
                 if (data[0] !== romId) {
                     console.log("sendRtcDataCommand rejected with code " + data[0]);

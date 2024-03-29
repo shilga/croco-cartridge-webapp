@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/* global BigInt */
+
 import ConfirmationModal from './ConfirmationModal';
 import React from "react";
 import Button from 'react-bootstrap/Button';
@@ -24,6 +26,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import download from "downloadjs";
+const { addSeconds, fromUnixTime } = require("date-fns");
 
 const BANK_SIZE = 0x2000;
 const CHUNK_SIZE = 32;
@@ -99,8 +102,18 @@ class SavegameModal extends React.Component {
 
         if (this.saveGameHasRtc) {
             try {
+                // convert timestamp to UTC
+                var rtcData = this.saveGameArray.slice(this.saveGameSize, this.saveGameArray.byteLength);
+                var view = new DataView(rtcData.buffer);
+                var utcTimeStamp = Number(view.getBigUint64(40, true)); // JavaScript max Int is 2^53 - 1
+
+                var localDate = fromUnixTime(utcTimeStamp);
+
+                var localTimeStamp = utcTimeStamp - (localDate.getTimezoneOffset() * 60);
+                view.setBigUint64(40, BigInt(localTimeStamp), true);
+
                 console.log("Sending RTC data");
-                this.comm.sendRtcDataCommand(this.props.romInfo.romId, this.saveGameArray.subarray(this.saveGameSize, this.saveGameArray.byteLength));
+                this.comm.sendRtcDataCommand(this.props.romInfo.romId, rtcData);
             }
             catch (e) {
                 this.onError("Uploading the RTC data failed");
@@ -158,6 +171,16 @@ class SavegameModal extends React.Component {
             console.log("Download was finished");
 
             if (hasRtcData) {
+                // convert timestamp to UTC
+                var view = new DataView(rtcData.buffer);
+                var localTimeStamp = Number(view.getBigUint64(40, true)); // JavaScript max Int is 2^53 - 1
+
+                var localDate = new Date(1970, 0, 1, 0, 0, 0, 0);
+                localDate = addSeconds(localDate, localTimeStamp);
+
+                var utcTimeStamp = localTimeStamp + (localDate.getTimezoneOffset() * 60);
+                view.setBigUint64(40, BigInt(utcTimeStamp), true);
+
                 saveGameBuffer.set(rtcData, bytesToTransfer);
                 console.log("Concatinated rtcData");
             }
@@ -170,7 +193,7 @@ class SavegameModal extends React.Component {
             this.onError("Downloading the savegame failed");
             this.setState({ uploadInProgress: false });
 
-            console.log("Dowloading the savegame failed: " + e);
+            console.log("Downloading the savegame failed: " + e);
         }
     }
 
@@ -187,7 +210,7 @@ class SavegameModal extends React.Component {
             this.saveGameArray = new Uint8Array(e.target.result);
             console.log("Loaded savegame is " + this.saveGameArray.byteLength + "bytes long");
 
-            this.hasRtcData = false;
+            this.saveGameHasRtc = false;
             this.saveGameSize = 0;
 
             if (this.saveGameArray.byteLength === this.props.romInfo.numRamBanks * BANK_SIZE) {
@@ -197,7 +220,7 @@ class SavegameModal extends React.Component {
             else if (this.saveGameArray.byteLength === ((this.props.romInfo.numRamBanks * BANK_SIZE) + RTC_SAVE_SIZE)) {
                 this.setState({ validSavegameLoaded: true });
                 this.saveGameSize = this.saveGameArray.byteLength - RTC_SAVE_SIZE
-                this.hasRtcData = true;
+                this.saveGameHasRtc = true;
 
                 console.log("Detected RTC data");
             }
