@@ -1,6 +1,11 @@
 {
   "name": "gb-cartridge-webapp",
   "version": "0.6.0",
+  "author": {
+    "name": "Sebastian Quilitz",
+    "email": "zeraphim@x-pantion.de",
+    "url": "https://croco.x-pantion.de"
+  },
   "private": true,
   "main": "electron-main.js",
   "homepage": "./",
