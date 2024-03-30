@@ -100,21 +100,7 @@ class GbCartridge extends React.Component {
     var deviceInfo = await this.comm.readDeviceInfoCommand();
     this.setState({deviceInfo: deviceInfo});
 
-    if(deviceInfo.swVersion.minor < 2)
-    {
-      setTimeout(() => {
-        toast.info(NewFirmwareNotifcation, {
-          position: "top-right",
-          autoClose: 0,
-          hideProgressBar: true,
-          closeOnClick: true,
-          draggable: false,
-          progress: undefined,
-          theme: "light",
-        });
-      }, 1000);
-    }
-    else if((deviceInfo.swVersion.minor === 2) && (deviceInfo.swVersion.patch < 2))
+    if(deviceInfo.swVersion.minor < 4)
     {
       setTimeout(() => {
         toast.info(NewFirmwareNotifcation, {

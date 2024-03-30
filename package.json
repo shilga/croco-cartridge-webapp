@@ -5,7 +5,7 @@
     "email": "zeraphim@x-pantion.de",
     "url": "https://croco.x-pantion.de"
   },
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": true,
   "main": "electron-main.js",
   "homepage": "./",
