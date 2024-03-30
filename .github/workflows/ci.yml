@@ -41,12 +41,13 @@ jobs:
       run: npm run build
 
     - name: list files
-      run: ls -R
+      run: ls -R > files-${{ matrix.os }}.txt
 
     - name: Archive artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: croco-cartridge-webapp-${{env.GITHUB_SHA}}
+        name: croco-cartridge-${{ matrix.os }}-${{env.GITHUB_SHA}}
         path: |
-          ${{env.GITHUB_WORKSPACE}}/build/*
-          ${{env.GITHUB_WORKSPACE}}/dist/*
+          files-*.txt
+          build/**
+          dist/**
