@@ -8,7 +8,7 @@
   },
   "private": true,
   "main": "electron-main.js",
-  "homepage": "./",
+  "homepage": "https://shilga.github.io/croco-cartridge-webapp",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -17,6 +17,7 @@
     "date-fns": "^3.6.0",
     "downloadjs": "^1.4.7",
     "electron-is-dev": "^2.0.0",
+    "gh-pages": "^6.1.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.2",
     "react-bootstrap-icons": "^1.10.3",
@@ -33,6 +34,7 @@
     "react-eject": "react-scripts eject",
     "electron-build": "electron-builder -p never",
     "electron": "electron .",
+    "deploy-gh-pages": "gh-pages -d build",
     "build": "npm run react-build && npm run electron-build",
     "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"npm run electron-run\""
   },

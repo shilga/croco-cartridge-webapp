@@ -1,0 +1,124 @@
+name: Build release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # Push events to any matching semantic tag. For example, v1.10.1 or v2.0.0 or v3.0.0-alpha.
+        # For more details, see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        node-version: [19.x]
+    permissions:
+      pages: write
+      contents: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          **/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Set package version
+      run: npm version --no-git-tag-version ${{ github.ref_name }}
+
+    - name: Build
+      env: 
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npm run build
+
+    - name: Upload artifacts Mac
+      if: startsWith(matrix.os, 'macos')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-app-macos
+        path: |
+          dist/*.dmg
+
+    - name: Upload artifacts Windows
+      if: startsWith(matrix.os, 'windows')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-app-windows
+        path: |
+          dist/*.exe
+
+    - name: Upload artifacts Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-app-linux
+        path: |
+          dist/*.AppImage
+
+    - name: Upload artifacts Web
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-webapp
+        path: |
+          build
+
+    - name: Deploy gh-pages
+      if: startsWith(matrix.os, 'ubuntu')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+      run: |
+        git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        npm run deploy-gh-pages -- -u "github-actions-bot <github-actions@users.noreply.github.com>"
+
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: false
+
+      - name: list files
+        run: ls -R
+
+      - name: Package webapp
+        run: |
+          tar cvzf croco-cartridge-webapp-${{ github.ref_name }}.tgz croco-cartridge-webapp/*
+
+      - name: list files 2
+        run: ls -R
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prerelease: false
+          draft: true
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: |
+            **/*.AppImage
+            **/*.exe
+            **/*.dmg
+            *.tgz
