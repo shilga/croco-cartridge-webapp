@@ -75,26 +75,7 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "pacman",
-        "snap"
-      ]
-    },
-    "snap": {
-      "plugs": [
-        "desktop",
-        "desktop-legacy",
-        "home",
-        "x11",
-        "wayland",
-        "unity7",
-        "browser-support",
-        "network",
-        "gsettings",
-        "audio-playback",
-        "pulseaudio",
-        "opengl",
-        "raw-usb"
+        "AppImage"
       ]
     }
   }
