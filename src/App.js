@@ -210,7 +210,7 @@ class GbCartridge extends React.Component {
       if (this.state.state === this.StateConnect) {
         return (
           <div className="connect">
-            <img src={process.env.PUBLIC_URL + '/croco_small.png'} className="gameboy" />
+            <img src={process.env.PUBLIC_URL + '/croco_small.png'} alt="pixel croco logo" className="gameboy" />
             <h2 className="cover-heading">Croco Gameboy Cartridge</h2>
             <p className="lead">Connect your Cartridge and manage your ROMs</p>
             <hr />
