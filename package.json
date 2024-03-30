@@ -1,11 +1,11 @@
 {
   "name": "gb-cartridge-webapp",
+  "version": "0.0.0",
   "author": {
     "name": "Sebastian Quilitz",
     "email": "zeraphim@x-pantion.de",
     "url": "https://croco.x-pantion.de"
   },
-  "version": "0.5.3",
   "private": true,
   "main": "electron-main.js",
   "homepage": "./",
@@ -31,9 +31,8 @@
     "react-build": "react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
     "react-eject": "react-scripts eject",
-    "electron-build": "electron-builder",
+    "electron-build": "electron-builder -p never",
     "electron": "electron .",
-    "release": "npm run react-build && electron-builder -wl",
     "build": "npm run react-build && npm run electron-build",
     "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"npm run electron-run\""
   },
@@ -75,26 +74,7 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "pacman",
-        "snap"
-      ]
-    },
-    "snap": {
-      "plugs": [
-        "desktop",
-        "desktop-legacy",
-        "home",
-        "x11",
-        "wayland",
-        "unity7",
-        "browser-support",
-        "network",
-        "gsettings",
-        "audio-playback",
-        "pulseaudio",
-        "opengl",
-        "raw-usb"
+        "AppImage"
       ]
     }
   }
