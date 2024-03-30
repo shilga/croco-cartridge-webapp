@@ -1,6 +1,6 @@
 {
   "name": "gb-cartridge-webapp",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "private": true,
   "main": "electron-main.js",
   "homepage": "./",
