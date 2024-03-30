@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/croco-cartridge-webapp/static/css/main.abb7b3d5.css",
+    "main.js": "/croco-cartridge-webapp/static/js/main.fa902e31.js",
+    "static/js/787.fd13be40.chunk.js": "/croco-cartridge-webapp/static/js/787.fd13be40.chunk.js",
+    "index.html": "/croco-cartridge-webapp/index.html",
+    "main.abb7b3d5.css.map": "/croco-cartridge-webapp/static/css/main.abb7b3d5.css.map",
+    "main.fa902e31.js.map": "/croco-cartridge-webapp/static/js/main.fa902e31.js.map",
+    "787.fd13be40.chunk.js.map": "/croco-cartridge-webapp/static/js/787.fd13be40.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.abb7b3d5.css",
+    "static/js/main.fa902e31.js"
+  ]
+}
