@@ -40,14 +40,34 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run build
 
-    - name: list files
-      run: ls -R > files-${{ matrix.os }}.txt
-
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v3
+    - name: Archive artifacts Mac
+      if: startsWith(matrix.os, 'macos')
+      uses: actions/upload-artifact@v4
       with:
-        name: croco-cartridge-${{ matrix.os }}-${{env.GITHUB_SHA}}
+        name: croco-cartridge-app-macos-${{ github.sha }}
         path: |
-          files-*.txt
+          dist/*.dmg
+
+    - name: Archive artifacts Windows
+      if: startsWith(matrix.os, 'windows')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-app-windows-${{ github.sha }}
+        path: |
+          dist/*.exe
+
+    - name: Archive artifacts Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-app-linux-${{ github.sha }}
+        path: |
+          dist/*.AppImage
+
+    - name: Archive artifacts Web
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions/upload-artifact@v4
+      with:
+        name: croco-cartridge-webapp-${{ github.sha }}
+        path: |
           build/**
-          dist/**
