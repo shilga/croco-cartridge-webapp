@@ -9,10 +9,11 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
         node-version: [19.x]
 
     steps:
@@ -20,7 +21,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
 
@@ -35,5 +36,5 @@ jobs:
       run: npm install
 
     - name: Build
-      run: npm run react-build
+      run: npm run build
 
