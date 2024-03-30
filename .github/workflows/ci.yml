@@ -40,3 +40,13 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run build
 
+    - name: list files
+      run: ls -R
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: croco-cartridge-webapp-${{env.GITHUB_SHA}}
+        path: |
+          ${{env.GITHUB_WORKSPACE}}/build/*
+          ${{env.GITHUB_WORKSPACE}}/dist/*
