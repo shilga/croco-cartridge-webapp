@@ -212,7 +212,7 @@ class GbCartridge extends React.Component {
             <br />
             <small>Version: {process.env.REACT_APP_VERSION}</small>
 
-            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href="https://croco.x-pantion.de/offline">here</a>.</div>}
+            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href="https://github.com/shilga/croco-cartridge-webapp/releases">here</a>.</div>}
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {
