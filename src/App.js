@@ -30,17 +30,17 @@ import 'react-toastify/dist/ReactToastify.css';
 function isElectron() {
   // Renderer process
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
-      return true;
+    return true;
   }
 
   // Main process
   if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
-      return true;
+    return true;
   }
 
   // Detect the user agent when the `nodeIntegration` option is set to true
   if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
-      return true;
+    return true;
   }
 
   return false;
@@ -49,8 +49,8 @@ function isElectron() {
 const NewFirmwareNotifcation = () => {
   return (
     <div>
-        New Firmware available.<br/>
-        <a target="_blank" rel="noopener noreferrer" href="https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases">Check it out</a>
+      New Firmware available.<br />
+      <a target="_blank" rel="noopener noreferrer" href="https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases">Check it out</a>
     </div>
   )
 }
@@ -65,7 +65,7 @@ class GbCartridge extends React.Component {
     state: this.StateConnect,
     openAddRomModal: false,
     deviceInfo: {},
-    romUtiliuation: { numRoms: 0, usedBanks: 0, maxBanks: 0},
+    romUtiliuation: { numRoms: 0, usedBanks: 0, maxBanks: 0 },
     romInfos: [],
     confirmationMessage: null,
     confirmationId: 0,
@@ -98,7 +98,7 @@ class GbCartridge extends React.Component {
     console.log("Reading device info...");
 
     var deviceInfo = await this.comm.readDeviceInfoCommand();
-    this.setState({deviceInfo: deviceInfo});
+    this.setState({ deviceInfo: deviceInfo });
 
     if(deviceInfo.swVersion.minor < 4)
     {
@@ -115,13 +115,8 @@ class GbCartridge extends React.Component {
       }, 1000);
     }
 
-    if(deviceInfo.featureStep >= 2)
-    {
-      this.comm.supportsSpeedChangeBankInfo = true;
-    }
-
-    if(deviceInfo.featureStep > 2)
-    {
+    if (deviceInfo.featureStep > 3) {
+      console.log("The cartridge firmware might be to new! (featureStep = " + deviceInfo.featureStep);
       setTimeout(() => {
         toast.warning("The cartridge firmware might be to new!", {
           position: "top-right",
@@ -158,15 +153,15 @@ class GbCartridge extends React.Component {
   showDeleteConfirmationModal = (e) => {
     const id = e.currentTarget.dataset.index;
 
-    this.setState({confirmationId: id, confirmationMessage: `Are you sure you want to delete '${this.state.romInfos[id].name}' and it's savegame?`});
+    this.setState({ confirmationId: id, confirmationMessage: `Are you sure you want to delete '${this.state.romInfos[id].name}' and it's savegame?` });
 
-    this.setState({showConfirmationModal: true});
+    this.setState({ showConfirmationModal: true });
   };
 
   openSaveGameModal = (e) => {
     const id = e.currentTarget.dataset.index;
 
-    this.setState({showSavegameModal: true, activeRomListInfo: this.state.romInfos[id]});
+    this.setState({ showSavegameModal: true, activeRomListInfo: this.state.romInfos[id] });
   };
 
   deleteRom = async (type, id) => {
@@ -183,8 +178,8 @@ class GbCartridge extends React.Component {
     this.readDeviceStatus();
   };
 
-  refreshDeviceStatus = async() => {
-    this.setState({state: this.StateRetrievingInfo});
+  refreshDeviceStatus = async () => {
+    this.setState({ state: this.StateRetrievingInfo });
 
     this.readDeviceStatus();
   }
@@ -202,7 +197,7 @@ class GbCartridge extends React.Component {
   }
 
   hideConfirmationModal = () => {
-    this.setState({showConfirmationModal: false});
+    this.setState({ showConfirmationModal: false });
   }
 
   render() {
@@ -223,34 +218,36 @@ class GbCartridge extends React.Component {
         )
       } else if (this.state.state === this.StateConnecting) {
         return (<div className="connect">
+          <ToastContainer />
           <h2>Connecting...</h2>
         </div>)
       } else if (this.state.state === this.StateRetrievingInfo) {
         return (<div className="connect">
+          <ToastContainer />
           <h2>Downloading Info...</h2>
         </div>)
       } else if (this.state.state === this.StateConnected) {
         return (
           <div className="connect">
             <ToastContainer />
-            <hr/>
+            <hr />
             <ListGroup>
               {this.state.romInfos.map((romInfo, idx) => (
                 <ListGroup.Item key={idx} className="d-flex justify-content-between">
                   <div className="ms-2 me-auto">
                     {romInfo.name}
                   </div>
-                  <Button data-index={idx} onClick={this.openSaveGameModal} disabled={romInfo.numRamBanks === 0}><Save2Fill/></Button>
-                  <Button variant='danger' data-index={idx} onClick={this.showDeleteConfirmationModal}><Trash3Fill/></Button>
+                  <Button data-index={idx} onClick={this.openSaveGameModal} disabled={(romInfo.numRamBanks === 0) && (romInfo.mbc !== 2)}><Save2Fill /></Button>
+                  <Button variant='danger' data-index={idx} onClick={this.showDeleteConfirmationModal}><Trash3Fill /></Button>
                 </ListGroup.Item>
               ))}
             </ListGroup>
-            <hr/>
-            <ProgressBar now={this.state.romUtiliuation.usedBanks} max={this.state.romUtiliuation.maxBanks} label={`${this.state.romUtiliuation.usedBanks} banks used (${this.state.romUtiliuation.maxBanks - this.state.romUtiliuation.usedBanks} free)`}/> <br/>
-            Connected to Croco Cartridge with firmware version {this.state.deviceInfo.swVersion.major}.{this.state.deviceInfo.swVersion.minor}.{this.state.deviceInfo.swVersion.patch} {this.state.deviceInfo.swVersion.buildType}. 
+            <hr />
+            <ProgressBar now={this.state.romUtiliuation.usedBanks} max={this.state.romUtiliuation.maxBanks} label={`${this.state.romUtiliuation.usedBanks} banks used (${this.state.romUtiliuation.maxBanks - this.state.romUtiliuation.usedBanks} free)`} /> <br />
+            Connected to Croco Cartridge with firmware version {this.state.deviceInfo.swVersion.major}.{this.state.deviceInfo.swVersion.minor}.{this.state.deviceInfo.swVersion.patch} {this.state.deviceInfo.swVersion.buildType}.
             Git <a target="_blank" rel="noopener noreferrer" href={"https://github.com/shilga/rp2040-gameboy-cartridge-firmware/commit/" + this.state.deviceInfo.swVersion.gitShort.toString(16)} >{this.state.deviceInfo.swVersion.gitShort.toString(16)}</a>
             {(this.state.deviceInfo.swVersion.gitDirty) && "(dirty)"}
-            <hr/>
+            <hr />
             <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
             <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} onError={this.displayError} comm={this.comm} />
             <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />

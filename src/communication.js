@@ -21,7 +21,9 @@ class Communication {
     constructor() {
         this.buffer = [];
         this.send_active = false;
+        this.featureStep = 0;
         this.supportsSpeedChangeBankInfo = false;
+        this.supportsMbcInfo = false;
     }
 
     static getPorts() {
@@ -174,11 +176,23 @@ class Communication {
                         gitDirty: view.getUint8(10) === 1 ? true : false
                     },
                 };
+
+                this.featureStep = res.featureStep;
+
+                if (this.featureStep >= 2) {
+                    this.supportsSpeedChangeBankInfo = true;
+                }
+
+                if (this.featureStep >= 3) {
+                    this.supportsMbcInfo = true;
+                }
+
                 resolve(res);
             },
                 error => {
                     console.log("readDeviceInfoCommand() " + error)
                     var res = {
+                        featureStep: 0,
                         hwVersion: 1,
                         swVersion: {
                             major: 0,
@@ -274,12 +288,17 @@ class Communication {
             var view = new DataView(payload);
             var arrayView = new Uint8Array(payload);
             view.setUint8(0, rom);
-            this.executeCommand(4, arrayView, 18).then(result => {
+            var receiveLength = 19;
+            if (!this.supportsMbcInfo) {
+                receiveLength = 18;
+            }
+            this.executeCommand(4, arrayView, receiveLength).then(result => {
                 var view = new DataView(result);
                 var romInfo = {
                     romId: rom,
                     name: StringView.getStringNT(view, 0),
-                    numRamBanks: view.getUint8(17)
+                    numRamBanks: view.getUint8(17),
+                    mbc: this.supportsMbcInfo ? view.getUint8(18) : 0xFF
                 };
                 resolve(romInfo);
             },

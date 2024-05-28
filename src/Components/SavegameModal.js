@@ -29,8 +29,8 @@ import download from "downloadjs";
 const { addSeconds, fromUnixTime } = require("date-fns");
 
 const BANK_SIZE = 0x2000;
+const MBC2_RAM_SIZE = 0x200;
 const CHUNK_SIZE = 32;
-const CHUNKS_PER_BANK = BANK_SIZE / CHUNK_SIZE;
 const RTC_SAVE_SIZE = 48;
 
 class SavegameModal extends React.Component {
@@ -79,14 +79,15 @@ class SavegameModal extends React.Component {
 
             this.setState({ bytesToTransfer: this.saveGameSize, bytesTransferred: 0, uploadInProgress: true });
 
-            for (var bank = 0; bank < this.props.romInfo.numRamBanks; bank++) {
-                for (var chunk = 0; chunk < CHUNKS_PER_BANK; chunk++) {
-                    await this.comm.sendSavegameChunkCommand(bank, chunk, this.saveGameArray.subarray((bank * BANK_SIZE) + (chunk * CHUNK_SIZE), (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE)));
-                    console.log(" Send bank " + bank + " chunk " + chunk);
+            while (bytesTransferred < this.saveGameSize) {
+                var bank = Math.floor(bytesTransferred / BANK_SIZE);
+                var chunk = (bytesTransferred - (bank * BANK_SIZE)) / CHUNK_SIZE;
 
-                    bytesTransferred = (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE);
-                    this.setState({ bytesTransferred: bytesTransferred });
-                }
+                await this.comm.sendSavegameChunkCommand(bank, chunk, this.saveGameArray.subarray((bank * BANK_SIZE) + (chunk * CHUNK_SIZE), (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE)));
+                console.log(" Send bank " + bank + " chunk " + chunk);
+
+                bytesTransferred += CHUNK_SIZE;
+                this.setState({ bytesTransferred: bytesTransferred });
             }
 
             console.log("Savegame Upload was finished");
@@ -125,7 +126,7 @@ class SavegameModal extends React.Component {
     };
 
     async savegameDownloadButtonHandler() {
-        var bytesToTransfer = this.props.romInfo.numRamBanks * BANK_SIZE;
+        var bytesToTransfer = this.props.romInfo.mbc !== 2 ? this.props.romInfo.numRamBanks * BANK_SIZE : MBC2_RAM_SIZE;
         var bytesTransferred = 0;
         var hasRtcData = false;
         var rtcData;
@@ -150,22 +151,24 @@ class SavegameModal extends React.Component {
 
             this.setState({ bytesToTransfer: bytesToTransfer, bytesTransferred: 0, downloadInProgress: true });
 
-            for (var bank = 0; bank < this.props.romInfo.numRamBanks; bank++) {
-                for (var chunk = 0; chunk < CHUNKS_PER_BANK; chunk++) {
-                    var res = await this.comm.receiveSavegameChunkCommand();
-                    console.log(" Received bank " + res.bank + " chunk " + res.chunk);
+            while (bytesTransferred < bytesToTransfer) {
+                var bank = Math.floor(bytesTransferred / BANK_SIZE);
+                var chunk = (bytesTransferred - (bank * BANK_SIZE)) / CHUNK_SIZE;
 
-                    saveGameBuffer.set(res.data, bytesTransferred);
+                console.log("Expecting bank " + bank + " chunk " + chunk + " bytesTransferred " + bytesTransferred);
 
-                    bytesTransferred = (bank * BANK_SIZE) + ((chunk + 1) * CHUNK_SIZE);
+                var res = await this.comm.receiveSavegameChunkCommand();
+                console.log("Received bank " + res.bank + " chunk " + res.chunk);
 
-                    this.setState({ bytesTransferred: bytesTransferred });
-                    if (res.bank !== bank || res.chunk !== chunk) {
-                        console.log("Wrong bank/chunk");
-                        return;
-                    }
+                saveGameBuffer.set(res.data, bytesTransferred);
+
+                bytesTransferred += CHUNK_SIZE;
+
+                this.setState({ bytesTransferred: bytesTransferred });
+                if (res.bank !== bank || res.chunk !== chunk) {
+                    console.log("Wrong bank/chunk");
+                    return;
                 }
-                this.setState({ uploadedBank: bank });
             }
 
             console.log("Download was finished");
@@ -224,6 +227,10 @@ class SavegameModal extends React.Component {
 
                 console.log("Detected RTC data");
             }
+            else if ((this.props.romInfo.mbc === 2) && (this.saveGameArray.byteLength === MBC2_RAM_SIZE)) {
+                this.setState({ validSavegameLoaded: true });
+                this.saveGameSize = this.saveGameArray.byteLength;
+            }
             else {
                 this.setState({ validSavegameLoaded: false });
                 console.log("Wrong savegame size, should be " + this.props.romInfo.numRamBanks * BANK_SIZE + "bytes long");
@@ -257,7 +264,7 @@ class SavegameModal extends React.Component {
                             <Form.Group as={Row}>
                                 <Form.Label column sm="2">Select Savegame</Form.Label>
                                 <Col sm="10">
-                                    <Form.Control type="file" onChange={(e) => this.fileChangedHandler(e)} disabled={this.state.uploadInProgress || this.props.romInfo.numRamBanks === 0} />
+                                    <Form.Control type="file" onChange={(e) => this.fileChangedHandler(e)} disabled={this.state.uploadInProgress} />
                                 </Col>
                             </Form.Group>
                         </Form>
@@ -265,8 +272,8 @@ class SavegameModal extends React.Component {
                         {(this.state.downloadInProgress || this.state.uploadInProgress) && <ProgressBar animated={false} now={this.state.bytesTransferred} max={this.state.bytesToTransfer} />}
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button onClick={() => this.savegameUploadButtonHandler()} disabled={this.props.romInfo.numRamBanks === 0 || !this.state.validSavegameLoaded || this.state.downloadInProgress || this.state.uploadInProgress}>Upload Savegame RAM</Button>
-                        <Button onClick={() => this.savegameDownloadButtonHandler()} disabled={this.props.romInfo.numRamBanks === 0 || this.state.downloadInProgress || this.state.uploadInProgress}>Download Savegame RAM</Button>
+                        <Button onClick={() => this.savegameUploadButtonHandler()} disabled={!this.state.validSavegameLoaded || this.state.downloadInProgress || this.state.uploadInProgress}>Upload Savegame RAM</Button>
+                        <Button onClick={() => this.savegameDownloadButtonHandler()} disabled={this.state.downloadInProgress || this.state.uploadInProgress}>Download Savegame RAM</Button>
                         <Button onClick={this.onHide} disabled={this.state.downloadInProgress || this.state.uploadInProgress}>Close</Button>
                         <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.uploadRam} hideModal={() => { this.setState({ showConfirmationModal: false }); }} title="Upload confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
                     </Modal.Footer>
