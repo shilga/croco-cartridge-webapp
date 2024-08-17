@@ -4,11 +4,11 @@
   "author": {
     "name": "Sebastian Quilitz",
     "email": "zeraphim@x-pantion.de",
-    "url": "https://croco.x-pantion.de"
+    "url": "https://cartridge-web.croco-electronics.de"
   },
   "private": true,
   "main": "electron-main.js",
-  "homepage": "https://shilga.github.io/croco-cartridge-webapp",
+  "homepage": "https://cartridge-web.croco-electronics.de",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
