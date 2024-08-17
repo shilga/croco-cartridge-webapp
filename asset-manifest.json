@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/croco-cartridge-webapp/static/css/main.abb7b3d5.css",
-    "main.js": "/croco-cartridge-webapp/static/js/main.98039539.js",
-    "static/js/787.fd13be40.chunk.js": "/croco-cartridge-webapp/static/js/787.fd13be40.chunk.js",
-    "index.html": "/croco-cartridge-webapp/index.html",
-    "main.abb7b3d5.css.map": "/croco-cartridge-webapp/static/css/main.abb7b3d5.css.map",
-    "main.98039539.js.map": "/croco-cartridge-webapp/static/js/main.98039539.js.map",
-    "787.fd13be40.chunk.js.map": "/croco-cartridge-webapp/static/js/787.fd13be40.chunk.js.map"
+    "main.css": "/static/css/main.abb7b3d5.css",
+    "main.js": "/static/js/main.b629bec1.js",
+    "static/js/787.fd13be40.chunk.js": "/static/js/787.fd13be40.chunk.js",
+    "index.html": "/index.html",
+    "main.abb7b3d5.css.map": "/static/css/main.abb7b3d5.css.map",
+    "main.b629bec1.js.map": "/static/js/main.b629bec1.js.map",
+    "787.fd13be40.chunk.js.map": "/static/js/787.fd13be40.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.abb7b3d5.css",
-    "static/js/main.98039539.js"
+    "static/js/main.b629bec1.js"
   ]
 }
