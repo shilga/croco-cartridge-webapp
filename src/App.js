@@ -46,20 +46,15 @@ function isElectron() {
   return false;
 }
 
-const NewFirmwareNotifcation = () => {
-  return (
-    <div>
-      New Firmware available.<br />
-      <a target="_blank" rel="noopener noreferrer" href="https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases">Check it out</a>
-    </div>
-  )
-}
-
 class GbCartridge extends React.Component {
   StateConnect = "Connect"; // Select USB device
   StateConnecting = "Connecting"; // Connect to USB device
   StateRetrievingInfo = "RetrievingInfo";
   StateConnected = "Connected";
+
+  static defaultProps = {
+    ReleasesURL: "https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases"
+  };
 
   state = {
     state: this.StateConnect,
@@ -74,6 +69,15 @@ class GbCartridge extends React.Component {
     showSavegameModal: false,
     activeRomListItem: null,
     activeRomListInfo: null
+  }
+
+  NewFirmwareNotifcation = () => {
+    return (
+      <div>
+        New Firmware available.<br />
+        <a target="_blank" rel="noopener noreferrer" href={this.props.ReleasesURL}>Check it out</a>
+      </div>
+    )
   }
 
   ConnectButtonHandler() {
@@ -103,7 +107,7 @@ class GbCartridge extends React.Component {
 
     if (deviceInfo.swVersion.minor < 5) {
       setTimeout(() => {
-        toast.info(NewFirmwareNotifcation, {
+        toast.info(this.NewFirmwareNotifcation, {
           position: "top-right",
           autoClose: 0,
           hideProgressBar: true,
@@ -222,7 +226,7 @@ class GbCartridge extends React.Component {
             <br />
             <small>Version: {process.env.REACT_APP_VERSION}</small>
 
-            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href="https://github.com/shilga/croco-cartridge-webapp/releases">here</a>.</div>}
+            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href={this.props.ReleasesURL}>here</a>.</div>}
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {
@@ -274,7 +278,10 @@ class GbCartridge extends React.Component {
       }
     } else {
       return (
-        <h2>Sorry, your browser does not support WebUSB!</h2>
+        <div className="unsupportedBrowser">
+          <h2>Sorry, your browser does not support WebUSB!</h2>
+          <hr />Maybe you want to use the offline version which can be found <a target="_blank" rel="noopener noreferrer" href={this.props.ReleasesURL}>here</a>.
+        </div>
       )
     }
   }
