@@ -65,6 +65,7 @@ class GbCartridge extends React.Component {
     state: this.StateConnect,
     openAddRomModal: false,
     deviceInfo: {},
+    serialId: null,
     romUtiliuation: { numRoms: 0, usedBanks: 0, maxBanks: 0 },
     romInfos: [],
     confirmationMessage: null,
@@ -127,6 +128,15 @@ class GbCartridge extends React.Component {
           theme: "light",
         });
       }, 1000);
+    }
+
+    try {
+      var serialId = await this.comm.readDeviceSerialId();
+      console.log("serialId is " + serialId);
+      this.setState({ serialId: serialId });
+    }
+    catch (e) {
+      console.log("Was not able to read serialId");
     }
 
     this.readRomUtilization();
@@ -243,11 +253,13 @@ class GbCartridge extends React.Component {
             </ListGroup>
             <hr />
             <ProgressBar now={this.state.romUtiliuation.usedBanks} max={this.state.romUtiliuation.maxBanks} label={`${this.state.romUtiliuation.usedBanks} banks used (${this.state.romUtiliuation.maxBanks - this.state.romUtiliuation.usedBanks} free)`} /> <br />
-            Connected to Croco Cartridge with firmware version {this.state.deviceInfo.swVersion.major}.{this.state.deviceInfo.swVersion.minor}.{this.state.deviceInfo.swVersion.patch} {this.state.deviceInfo.swVersion.buildType}.
+            <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
+            <hr />
+            Croco Cartridge FW {this.state.deviceInfo.swVersion.major}.{this.state.deviceInfo.swVersion.minor}.{this.state.deviceInfo.swVersion.patch} {this.state.deviceInfo.swVersion.buildType}.
             Git <a target="_blank" rel="noopener noreferrer" href={"https://github.com/shilga/rp2040-gameboy-cartridge-firmware/commit/" + this.state.deviceInfo.swVersion.gitShort.toString(16)} >{this.state.deviceInfo.swVersion.gitShort.toString(16)}</a>
             {(this.state.deviceInfo.swVersion.gitDirty) && "(dirty)"}
+            {(this.state.serialId) && " Serial " + this.state.serialId}
             <hr />
-            <Button onClick={(e) => { this.setState({ openAddRomModal: true }); }} className="btn btn-lg btn-secondary">Add ROM</Button>
             <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} onError={this.displayError} comm={this.comm} />
             <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
             <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} onError={this.displayError} comm={this.comm} romInfo={this.state.activeRomListInfo} />

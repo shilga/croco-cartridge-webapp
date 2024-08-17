@@ -208,6 +208,22 @@ class Communication {
         });
     }
 
+    readDeviceSerialId() {
+        return new Promise((resolve, reject) => {
+            this.executeCommand(253, null, 8).then(result => {
+                var view = new Uint8Array(result);
+                var res = Array.from(view, function(byte) {
+                    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+                }).join('').toUpperCase();
+
+                resolve(res);
+            },
+                error => {
+                    reject(error);
+                });
+        });
+    }
+
     readRomUtilizationCommand() {
         return new Promise((resolve, reject) => {
             this.executeCommand(1, null, 5).then(result => {
