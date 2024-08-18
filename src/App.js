@@ -53,7 +53,8 @@ class GbCartridge extends React.Component {
   StateConnected = "Connected";
 
   static defaultProps = {
-    ReleasesURL: "https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases"
+    ReleasesURL: "https://github.com/shilga/rp2040-gameboy-cartridge-firmware/releases",
+    WebappReleasesURL: "https://github.com/shilga/croco-cartridge-webapp/releases"
   };
 
   state = {
@@ -239,7 +240,7 @@ class GbCartridge extends React.Component {
             <br />
             <small>Version: {process.env.REACT_APP_VERSION}</small>
 
-            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href={this.props.ReleasesURL}>here</a>.</div>}
+            {!isElectron() && <div className="offlineInfo"><hr />Find the offline version <a target="_blank" rel="noopener noreferrer" href={this.props.WebappReleasesURL}>here</a>.</div>}
           </div>
         )
       } else if (this.state.state === this.StateConnecting) {
@@ -293,7 +294,7 @@ class GbCartridge extends React.Component {
       return (
         <div className="unsupportedBrowser">
           <h2>Sorry, your browser does not support WebUSB!</h2>
-          <hr />Maybe you want to use the offline version which can be found <a target="_blank" rel="noopener noreferrer" href={this.props.ReleasesURL}>here</a>.
+          <hr />Maybe you want to use the offline version which can be found <a target="_blank" rel="noopener noreferrer" href={this.props.WebappReleasesURL}>here</a>.
         </div>
       )
     }
