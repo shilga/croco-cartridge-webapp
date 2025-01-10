@@ -195,7 +195,7 @@ class AddNewRomModal extends React.Component
                         <Form.Group as={Row}>
                             <Form.Label column sm="2">ROM Name:</Form.Label>
                             <Col sm="10">
-                            <Form.Control plaintext maxLength={16} value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks, speedchangeBank: this.state.romInfo.speedchangeBank}})} />
+                            <Form.Control type="text" maxLength={16} value={this.state.romInfo.name} onChange={(e) => this.setState({romInfo: {name: e.target.value, banks: this.state.romInfo.banks, speedchangeBank: this.state.romInfo.speedchangeBank}})} />
                             </Col>
                         </Form.Group>
                         <Form.Group as={Row}>
