@@ -264,6 +264,11 @@ class GbCartridge extends React.Component {
                   <div className="ms-2 me-auto">
                     {romInfo.name}
                   </div>
+                  {romInfo.numRomBanks !== 0 ? (
+                    <div className='me-2 ms-auto'>
+                        {romInfo.numRomBanks} banks
+                    </div>
+                  ) : ''}
                   <Button data-index={idx} onClick={this.openSaveGameModal} disabled={(romInfo.numRamBanks === 0) && (romInfo.mbc !== 2)}><Save2Fill /></Button>
                   <Button variant='danger' data-index={idx} onClick={this.showDeleteConfirmationModal}><Trash3Fill /></Button>
                 </ListGroup.Item>

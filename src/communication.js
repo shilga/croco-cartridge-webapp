@@ -304,9 +304,9 @@ class Communication {
             var view = new DataView(payload);
             var arrayView = new Uint8Array(payload);
             view.setUint8(0, rom);
-            var receiveLength = 19;
+            var receiveLength = 22;
             if (!this.supportsMbcInfo) {
-                receiveLength = 18;
+                receiveLength = 21;
             }
             this.executeCommand(4, arrayView, receiveLength).then(result => {
                 var view = new DataView(result);
@@ -314,7 +314,8 @@ class Communication {
                     romId: rom,
                     name: StringView.getStringNT(view, 0),
                     numRamBanks: view.getUint8(17),
-                    mbc: this.supportsMbcInfo ? view.getUint8(18) : 0xFF
+                    mbc: this.supportsMbcInfo ? view.getUint8(18) : 0xFF,
+                    numRomBanks: view.byteLength > 19 ? view.getUint16(19) : 0
                 };
                 resolve(romInfo);
             },
