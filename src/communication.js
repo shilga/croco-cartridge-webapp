@@ -125,10 +125,17 @@ class Communication {
             this.send(requestData);
 
             this.read(readBytes + 1).then(result => {
+                if (result.status !== "ok") {
+                    console.log("Transfer error status=" + result.status);
+                    reject("Error reading from device status=" + result.status);
+                    return;
+                }
+
                 var data = new DataView(result.data.buffer);
                 console.log("executeCommand read " + data.getUint8(0) + " " + data.byteLength);
                 if (data.getUint8(0) !== command) {
                     reject("Wrong answer");
+                    return;
                 }
 
                 resolve(result.data.buffer.slice(1));
@@ -212,7 +219,7 @@ class Communication {
         return new Promise((resolve, reject) => {
             this.executeCommand(253, null, 8).then(result => {
                 var view = new Uint8Array(result);
-                var res = Array.from(view, function(byte) {
+                var res = Array.from(view, function (byte) {
                     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
                 }).join('').toUpperCase();
 

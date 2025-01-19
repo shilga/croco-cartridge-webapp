@@ -168,10 +168,24 @@ class GbCartridge extends React.Component {
 
     var romInfos = [];
 
-    for (var rom = 0; rom < romUtiliuation.numRoms; rom++) {
-      var romInfo = await this.comm.readRomInfoCommand(rom);
-      console.log("Rom " + rom + ": " + romInfo.name);
-      romInfos.push(romInfo);
+    try {
+      for (var rom = 0; rom < romUtiliuation.numRoms; rom++) {
+        var romInfo = await this.comm.readRomInfoCommand(rom);
+        console.log("Rom " + rom + ": " + romInfo.name);
+        romInfos.push(romInfo);
+      }
+    }
+    catch (e) {
+      console.log("Error reding rominfo: " + e);
+      toast.error("There was an error reading the rom info. Maybe the firmware of the cartridge is too new?", {
+        position: "top-right",
+        autoClose: false,
+        hideProgressBar: true,
+        closeOnClick: true,
+        draggable: false,
+        progress: undefined,
+        theme: "light",
+      });
     }
 
     this.setState({ state: this.StateConnected, romUtiliuation: romUtiliuation, romInfos: romInfos });
