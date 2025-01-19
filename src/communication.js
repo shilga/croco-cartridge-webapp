@@ -304,9 +304,9 @@ class Communication {
             var view = new DataView(payload);
             var arrayView = new Uint8Array(payload);
             view.setUint8(0, rom);
-            var receiveLength = 22;
+            var receiveLength = 21;
             if (!this.supportsMbcInfo) {
-                receiveLength = 21;
+                receiveLength = 20;
             }
             this.executeCommand(4, arrayView, receiveLength).then(result => {
                 var view = new DataView(result);
