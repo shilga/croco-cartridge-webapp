@@ -107,7 +107,10 @@ class AddNewRomModal extends React.Component {
                         {
                             speedchangeState = 0;
                         }
-                        else if (inst === 0xe0) {
+                        else if (inst === 0xe0) { // ldh
+                            speedchangeState = 3;
+                        }
+                        else if (inst === 0xf0) { // ldh
                             speedchangeState = 3;
                         }
                     }
