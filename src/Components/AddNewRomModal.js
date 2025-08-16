@@ -187,6 +187,7 @@ class AddNewRomModal extends React.Component {
                 show={this.props.show}
                 onHide={this.onHide}
                 onEnter={() => this.onEnterHandler()}
+                backdrop={this.state.uploadInProgress ? "static" : "dynamic"}
                 size="lg"
                 aria-labelledby="contained-modal-title-vcenter"
                 centered
@@ -217,8 +218,8 @@ class AddNewRomModal extends React.Component {
                     {this.state.uploadInProgress && <ProgressBar animated={this.state.uploadRequestInProgress} now={this.state.uploadedBank} max={this.state.romInfo.banks} />}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={this.onHide}>Close</Button>
-                    <Button onClick={() => this.romUploadButtonHandler()} disabled={!this.state.validRomLoaded}>Upload</Button>
+                    <Button onClick={this.onHide} disabled={this.state.uploadInProgress}>Close</Button>
+                    <Button onClick={() => this.romUploadButtonHandler()} disabled={!this.state.validRomLoaded || this.state.uploadInProgress}>Upload</Button>
                 </Modal.Footer>
 
             </Modal>
