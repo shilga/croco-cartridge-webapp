@@ -33,6 +33,7 @@ class AddNewRomModal extends React.Component {
     onRomAdded = this.props.onRomAdded;
     onError = this.props.onError;
     comm = this.props.comm;
+    availableBanks = this.props.availableBanks;
 
     state = {
         validRomLoaded: false,
@@ -74,64 +75,79 @@ class AddNewRomModal extends React.Component {
             console.log("ROM has " + banks + " banks");
             console.log("ROM name is " + name);
             console.log("ROM is a CGB game: " + isCgbGame);
+            console.log("Available banks: " + this.availableBanks);
 
-            var speedchangeBank = 0xffff;
-            if (isCgbGame) {
-                var speedchangeState = 0;
-                for (var i = 0; (i < this.rom.byteLength) && (speedchangeBank === 0xffff); i++) {
-                    var inst = this.rom[i];
-                    if (speedchangeState === 0) {
-                        if (inst === 0xe0) {
-                            speedchangeState = 1;
+            if (this.availableBanks >= banks) {
+                var speedchangeBank = 0xffff;
+                if (isCgbGame) {
+                    var speedchangeState = 0;
+                    for (var i = 0; (i < this.rom.byteLength) && (speedchangeBank === 0xffff); i++) {
+                        var inst = this.rom[i];
+                        if (speedchangeState === 0) {
+                            if (inst === 0xe0) {
+                                speedchangeState = 1;
+                            }
                         }
-                    }
-                    else if (speedchangeState === 1) {
-                        if (inst === 0x4d) {
+                        else if (speedchangeState === 1) {
+                            if (inst === 0x4d) {
+                                speedchangeState = 2;
+                            }
+                            else {
+                                speedchangeState = 0;
+                            }
+                        }
+                        else if (speedchangeState === 2) {
+                            if (inst === 0x10) {
+                                speedchangeState = 4;
+                                speedchangeBank = Math.floor(i / BANK_SIZE);
+                                console.log("Speed change stop at " + i.toString(16));
+                            }
+                            else if (inst === 0xc9) // ret
+                            {
+                                speedchangeState = 0;
+                            }
+                            else if (inst === 0xFF) // rst or uninitialized
+                            {
+                                speedchangeState = 0;
+                            }
+                            else if (inst === 0xe0) { // ldh
+                                speedchangeState = 3;
+                            }
+                            else if (inst === 0xf0) { // ldh
+                                speedchangeState = 3;
+                            }
+                        }
+                        else if (speedchangeState === 3) {
+                            // just ignore this byte and go back to wait for stop state
                             speedchangeState = 2;
                         }
                         else {
-                            speedchangeState = 0;
+                            console.log("That should not have happened");
                         }
-                    }
-                    else if (speedchangeState === 2) {
-                        if (inst === 0x10) {
-                            speedchangeState = 4;
-                            speedchangeBank = Math.floor(i / BANK_SIZE);
-                            console.log("Speed change stop at " + i.toString(16));
-                        }
-                        else if (inst === 0xc9) // ret
-                        {
-                            speedchangeState = 0;
-                        }
-                        else if (inst === 0xFF) // rst or uninitialized
-                        {
-                            speedchangeState = 0;
-                        }
-                        else if (inst === 0xe0) { // ldh
-                            speedchangeState = 3;
-                        }
-                        else if (inst === 0xf0) { // ldh
-                            speedchangeState = 3;
-                        }
-                    }
-                    else if (speedchangeState === 3) {
-                        // just ignore this byte and go back to wait for stop state
-                        speedchangeState = 2;
-                    }
-                    else {
-                        console.log("That should not have happened");
                     }
                 }
-            }
 
-            console.log("Speed change happens in bank " + speedchangeBank);
-            this.setState({ validRomLoaded: true, romInfo: { banks: banks, name: name, speedchangeBank: speedchangeBank } });
+                console.log("Speed change happens in bank " + speedchangeBank);
+                this.setState({
+                    validRomLoaded: true,
+                    romInfo: { banks: banks, name: name, speedchangeBank: speedchangeBank }
+                });
+            }
+            else {
+                console.log("Not enough banks available on cart!");
+                this.setState({
+                    validRomLoaded: false,
+                    romInfo: { banks: banks, name: name }
+                });
+
+                this.onError("Not enough free banks available on cart for this ROM");
+            }
         };
         reader.readAsArrayBuffer(fileObj);
     }
 
     async romUploadButtonHandler() {
-        if(this.state.romInfo.name === "") {
+        if (this.state.romInfo.name === "") {
             this.onError("ROM name must not be empty!");
             return;
         }

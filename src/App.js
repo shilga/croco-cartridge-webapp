@@ -280,7 +280,7 @@ class GbCartridge extends React.Component {
                   </div>
                   {romInfo.numRomBanks !== 0 ? (
                     <div className='me-2 ms-auto'>
-                        {romInfo.numRomBanks} banks
+                      {romInfo.numRomBanks} banks
                     </div>
                   ) : ''}
                   <Button data-index={idx} onClick={this.openSaveGameModal} disabled={(romInfo.numRamBanks === 0) && (romInfo.mbc !== 2)}><Save2Fill /></Button>
@@ -297,7 +297,7 @@ class GbCartridge extends React.Component {
             {(this.state.deviceInfo.swVersion.gitDirty) && "(dirty)"}
             {(this.state.serialId) && " Serial " + this.state.serialId}
             <hr />
-            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} onError={this.displayError} comm={this.comm} />
+            <AddNewRomModal show={this.state.openAddRomModal} onHide={() => { this.setState({ openAddRomModal: false }); }} onRomAdded={this.refreshDeviceStatus} onError={this.displayError} comm={this.comm} availableBanks={this.state.romUtiliuation.maxBanks - this.state.romUtiliuation.usedBanks} />
             <ConfirmationModal showModal={this.state.showConfirmationModal} confirmModal={this.deleteRom} hideModal={this.hideConfirmationModal} title="Delete confirmation" id={this.state.confirmationId} message={this.state.confirmationMessage} />
             <SavegameModal show={this.state.showSavegameModal} onHide={() => { this.setState({ showSavegameModal: false }); }} onError={this.displayError} comm={this.comm} romInfo={this.state.activeRomListInfo} />
           </div>
